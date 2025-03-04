@@ -1,68 +1,77 @@
+const api = require('./api');
+
 async function initActions(self) {
-  const doors = await self.unifiAccess.getDoors();
-  const doorOptions = doors.map((door) => ({ id: door.id, label: door.name }));
+  if (!self.unifiAccess) {
+    self.log('error', 'UniFi Access API is not initialized.');
+    return;
+  }
 
-  self.setActions({
-    unlock_door: {
-      name: 'Unlock Door',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Select Door',
-          id: 'doorId',
-          choices: doorOptions,
-          default: doorOptions.length > 0 ? doorOptions[0].id : ''
-        }
-      ],
-      callback: async (action) => {
-        const { doorId } = action.options;
-        if (doorId) {
-          const result = await self.unifiAccess.unlockDoor(doorId);
-          self.log('info', `Unlock door response: ${JSON.stringify(result)}`);
-        }
-      }
-    },
+  try {
+    const doors = await api.getDoors(self.unifiAccess);
+    const doorOptions = doors.map((door) => ({ id: door.id, label: door.name }));
 
-    lock_door: {
-      name: 'Lock Door',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Select Door',
-          id: 'doorId',
-          choices: doorOptions,
-          default: doorOptions.length > 0 ? doorOptions[0].id : ''
-        }
-      ],
-      callback: async (action) => {
-        const { doorId } = action.options;
-        if (doorId) {
-          const result = await self.unifiAccess.lockDoor(doorId);
-          self.log('info', `Lock door response: ${JSON.stringify(result)}`);
-        }
-      }
-    },
-
-    get_door_status: {
-      name: 'Get Door Status',
-      options: [
-        {
-          type: 'dropdown',
-          label: 'Select Door',
-          id: 'doorId',
-          choices: doorOptions,
-          default: doorOptions.length > 0 ? doorOptions[0].id : ''
-        }
-      ],
-      callback: async (action) => {
-        const { doorId } = action.options;
-        if (doorId) {
-          const status = await self.unifiAccess.getDoorStatus(doorId);
-          self.log('info', `Door status: ${JSON.stringify(status)}`);
-        }
-      }
-    }
-  });
+    self.setActions({
+      unlock_door: {
+        name: 'Unlock Door',
+        options: [
+          {
+            type: 'dropdown',
+            label: 'Select Door',
+            id: 'doorId',
+            choices: doorOptions,
+            default: doorOptions[0]?.id || ''
+          }
+        ],
+        callback: async (action) => {
+          const { doorId } = action.options;
+          if (doorId) {
+            const result = await api.unlockDoor(doorId, self.unifiAccess);
+            if (self.config.verbose) self.log('info', `Unlock Response: ${JSON.stringify(result)}`);
+          }
+        },
+      },
+      lock_door: {
+        name: 'Lock Door',
+        options: [
+          {
+            type: 'dropdown',
+            label: 'Select Door',
+            id: 'doorId',
+            choices: doorOptions,
+            default: doorOptions[0]?.id || ''
+          }
+        ],
+        callback: async (action) => {
+          const { doorId } = action.options;
+          if (doorId) {
+            const result = await api.lockDoor(doorId, self.unifiAccess);
+            if (self.config.verbose) self.log('info', `Lock Response: ${JSON.stringify(result)}`);
+          }
+        },
+      },
+      get_door_status: {
+        name: 'Get Door Status',
+        options: [
+          {
+            type: 'dropdown',
+            label: 'Select Door',
+            id: 'doorId',
+            choices: doorOptions,
+            default: doorOptions[0]?.id || ''
+          }
+        ],
+        callback: async (action) => {
+          const { doorId } = action.options;
+          if (doorId) {
+            const status = await api.getDoorStatus(doorId, self.unifiAccess);
+            if (self.config.verbose) self.log('info', `Door status: ${JSON.stringify(status)}`);
+          }
+        },
+      },
+    });
+  } catch (error) {
+    self.log('error', `Failed to load doors: ${error.message}`);
+  }
 }
 
 module.exports = { initActions };

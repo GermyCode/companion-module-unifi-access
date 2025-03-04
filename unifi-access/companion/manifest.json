@@ -3,7 +3,7 @@
 	"name": "unifi-access",
 	"shortname": "Unifi-Access",
 	"description": "Companion module for controlling Unifi Access Doors",
-	"version": "1.1.1",
+	"version": "1.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/GermyCode/companion-module-unifi-access.git",
 	"bugs": "",
@@ -18,7 +18,7 @@
 		"type": "node18",
 		"api": "nodejs-ipc",
 		"apiVersion": "1.4.1",
-		"entrypoint": "../index.js"
+		"entrypoint": "../main.js"
 	},
 	"manufacturer": "Unifi",
 	"products": [ "Access" ],
